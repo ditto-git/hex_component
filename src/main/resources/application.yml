@@ -16,7 +16,7 @@ logging:
     com.ditto.hex.hex_console.mapper: debug
 
 mybatis-plus:
-  type-aliases-package: com.ditto.hex.hex_console.entity
+  type-aliases-package: com.ditto.hex_component.hex_console.entity
   configuration:
     call-setters-on-nulls: true
 

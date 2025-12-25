@@ -145,7 +145,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.ditto.hex.HexApplication</mainClass>
+                    <mainClass>com.ditto.hex_component.HexApplication</mainClass>
                     <skip>true</skip>
                 </configuration>
                 <executions>
