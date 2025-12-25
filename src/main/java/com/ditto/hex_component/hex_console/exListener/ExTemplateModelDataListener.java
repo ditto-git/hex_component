@@ -49,7 +49,7 @@ public class ExTemplateModelDataListener extends AnalysisEventListener<Map<Integ
     @Override
     public void invoke(Map<Integer, String> data, AnalysisContext context) {
         HexTemplate hexTemplate = ExThreadLocal.getExTemplate();
-        log.info("{}...模板解析中............", hexTemplate.getTemplateUrl());
+        log.info("{}...模板解析中...........", hexTemplate.getTemplateUrl());
         data.forEach((key, value) -> {
             if (!StringUtils.hasText(value)) return;
             boolean contains = value.startsWith(PROPERTY_STARTS_WITH) && value.endsWith(PROPERTY_ENDS_WITH);
