@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ditto.hex.hex_console.mapper.HexTemplateMapper">
+    <resultMap type="HexTemplate" id="hexTemplate">
+        <id property="templateCode" column="template_code"/>
+        <result property="templateUrl" column="template_url"/>
+        <result property="templateTable" column="template_table"/>
+        <result property="templateName" column="template_name"/>
+        <result property="fileName" column="file_name"/>
+        <result property="templateType" column="template_type"/>
+        <result property="templateStatus" column="template_status"/>
+
+
+
+
+        <collection property="hexTemplateCells" ofType="HexTemplateCell" javaType="list">
+            <id property="cellCode" column="cell_code"/>
+            <result property="templateCode" column="template_code"/>
+            <result property="cellProperty" column="cell_property"/>
+            <result property="cellHead" column="cell_head"/>
+            <result property="headContent" column="head_content"/>
+            <result property="cellStartCol" column="cell_start_col"/>
+            <result property="cellStartRow" column="cell_start_row"/>
+            <result property="cellIndex" column="cell_index"/>
+            <result property="cellFormula" column="cell_formula"/>
+            <result property="headFormula" column="head_formula"/>
+
+        </collection>
+
+    </resultMap>
+
+
+    <select id="getExTemplate" resultMap="hexTemplate" >
+        select * from ex_template t left join ex_template_cell tc on t.template_code =tc.template_code   where t.template_status =1 and t.template_code=#{t_code}
+    </select>
+
+    <update id="maintenance" >
+        update ex_template t set t.template_status=0 where t.template_code=#{t_code} and  (t.template_status=1 or t.template_url='' or t.template_url is null)
+    </update>
+</mapper>

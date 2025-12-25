@@ -1,0 +1,33 @@
+spring:
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+
+ # main:
+  #  allow-circular-references: true
+
+
+logging:
+  level:
+    # 指定mybatis的mapper映射配置文件的包路径
+    com.ditto.hex.hex_console.mapper: debug
+
+mybatis-plus:
+  type-aliases-package: com.ditto.hex.hex_console.entity
+  configuration:
+    call-setters-on-nulls: true
+
+
+
+
+
+  mapper-locations: classpath*:/mapper/*.xml
+
+
+
+
+
+
