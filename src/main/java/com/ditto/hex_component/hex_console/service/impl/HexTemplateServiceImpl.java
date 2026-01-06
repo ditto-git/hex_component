@@ -36,7 +36,7 @@ public class HexTemplateServiceImpl extends ServiceImpl<HexTemplateMapper, HexTe
     private HexTemplateMapper hexTemplateMapper;
 
 
-    public void initExTemplateConfig(HexTemplate hexTemplate){
+    public void initExTemplate(HexTemplate hexTemplate){
         hexTemplate.setTemplateStatus(defaultStatus);
         save(hexTemplate);
     }

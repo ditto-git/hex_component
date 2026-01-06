@@ -1,5 +1,6 @@
 package com.ditto.hex_component.hex_console.controller;
 
+import com.aliyuncs.utils.StringUtils;
 import com.ditto.hex_component.hex_console.entity.HexTemplate;
 import com.ditto.hex_component.hex_console.service.HexTemplateCellService;
 import com.ditto.hex_component.hex_console.service.HexTemplateFileCheck;
@@ -27,8 +28,13 @@ public class HexTemplateController {
     @Autowired
     private HexTemplateCellService hexTemplateCellService;
 
-
-
+    @RequestMapping("/initExTemplate")
+    public void  initExTemplate (HexTemplate exTemplate){
+        if (StringUtils.isEmpty(exTemplate.getTemplateCode())){
+            throw  new HexException(HexExceptionEnum.TEMP_CODE_NULL);
+        }
+        hexTemplateService.initExTemplate(exTemplate);
+    }
 
     @RequestMapping("/uploadExTemplate/{templateCode}")
     public void  uploadExTemplate(@PathVariable()String templateCode , MultipartHttpServletRequest request) {

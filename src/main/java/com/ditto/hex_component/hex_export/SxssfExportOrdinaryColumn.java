@@ -15,7 +15,7 @@ import java.io.InputStream;
 import static com.ditto.hex_component.hex_exception.HexExceptionEnum.FILE_EXPORT_ERROR;
 
 
-@Component("SxssfExportOrdinaryC")
+@Component("SxssfExportOrdinary1")
 @Slf4j
 public class SxssfExportOrdinaryColumn implements SxssfExportOrdinary{
 

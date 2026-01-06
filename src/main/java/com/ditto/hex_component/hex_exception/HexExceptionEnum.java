@@ -7,13 +7,14 @@ public enum HexExceptionEnum {
 
     DEFAULT(7733200,"操作失败，请联系管理员"),
 
+
     TEMP_NO_CONTAIN(773320, "模板维护中......"),
     TEMP_IMPORT_ERROR(773321, "模板导入异常，请联系管理员"),
     TEMP_MATCH_ERROR(773322, "模板匹配失败，请验证文件名及内容"),
     TEMP_IO_ERROR(773323, "操作失败，请联系管理员"),
 
 
-
+    TEMP_CODE_NULL(773324,"模板编码不能为空"),
     FILE_EXPORT_ERROR(230301, "文件导出失败,请联系管理员");
 
 

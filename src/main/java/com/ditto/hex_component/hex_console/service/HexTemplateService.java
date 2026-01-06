@@ -14,7 +14,7 @@ import com.ditto.hex_component.hex_util.request.ImportFileMultipartUtil;
  */
 public interface HexTemplateService extends IService<HexTemplate> {
      HexTemplate getExTemplate(String templateCode);
-
+     void initExTemplate(HexTemplate hexTemplate);
      void replaceExTemplate(ImportFileMultipartUtil importFileMultipartUtil);
 
 }

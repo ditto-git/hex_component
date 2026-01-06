@@ -79,20 +79,22 @@ public class HexTemplateCellServiceImpl extends ServiceImpl<HexTemplateCellMappe
 
         /*读取模板内容 到ExTemplateCell*/
         log.info("{}...模板解析中............", hexTemplate.getTemplateUrl());
-        try (XSSFWorkbook workbook = new XSSFWorkbook(importFileMultipartUtil.getInputStream())) {
-            XSSFSheet sheet = workbook.getSheetAt(0);
-            XSSFRow row;
-            for (int i = 0; i <= sheet.getLastRowNum(); i++) {
-                row = sheet.getRow(i);
-                for (int j = 0; j < row.getLastCellNum(); j++) {
-                    invoke(i, j, row.getCell(j) == null || CellType.FORMULA == row.getCell(j).getCellType() ? BLANK : row.getCell(j).toString());
+        if(!TEMPLATE_TYPE_X.equals(hexTemplate.getTemplateType())){
+            try (XSSFWorkbook workbook = new XSSFWorkbook(importFileMultipartUtil.getInputStream())) {
+                XSSFSheet sheet = workbook.getSheetAt(0);
+                XSSFRow row;
+                for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+                    row = sheet.getRow(i);
+                    for (int j = 0; j < row.getLastCellNum(); j++) {
+                        invoke(i, j, row.getCell(j) == null || CellType.FORMULA == row.getCell(j).getCellType() ? BLANK : row.getCell(j).toString());
+                    }
                 }
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                throw new HexException(TEMP_IMPORT_ERROR);
+            } finally {
+                importFileMultipartUtil.closeInputStream();
             }
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            throw new HexException(TEMP_IMPORT_ERROR);
-        } finally {
-            importFileMultipartUtil.closeInputStream();
         }
 
         //存储ExTemplate
