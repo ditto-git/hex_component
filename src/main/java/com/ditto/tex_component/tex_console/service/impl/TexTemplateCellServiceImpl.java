@@ -12,9 +12,9 @@ import com.ditto.tex_component.tex_console.mapper.TexTemplateMapper;
 import com.ditto.tex_component.tex_console.service.TexTemplateCellService;
 import com.ditto.tex_component.tex_exception.TexException;
 import com.ditto.tex_component.tex_util.TexThreadLocal;
-import com.ditto.tex_component.tex_util.oss.OSSUtil;
 import com.ditto.tex_component.tex_util.request.ExportFileResponseUtil;
 import com.ditto.tex_component.tex_util.request.ImportFileMultipartUtil;
+import com.ditto.tex_component.tex_util.template_stream.TexOssTemplateStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -65,8 +65,12 @@ public class TexTemplateCellServiceImpl extends ServiceImpl<TexTemplateCellMappe
 
     @Autowired
     private TexTemplateMapper texTemplateMapper;
+
     @Autowired
     private TexTemplateCellMapper hexTemplateCellMapper;
+
+    @Autowired
+    private TexOssTemplateStream TexOssTemplateStream;
 
     @Transactional
     public void replaceExTemplate(ImportFileMultipartUtil importFileMultipartUtil) {
@@ -92,7 +96,7 @@ public class TexTemplateCellServiceImpl extends ServiceImpl<TexTemplateCellMappe
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
                 throw new TexException(TEMP_IMPORT_ERROR);
-            } finally {
+            }finally {
                 importFileMultipartUtil.closeInputStream();
             }
         }
@@ -101,7 +105,7 @@ public class TexTemplateCellServiceImpl extends ServiceImpl<TexTemplateCellMappe
         doAfterAllAnalysed();
 
         /*更新OSS模板   模板路径变更*/
-        OSSUtil.uploadOSS(importFileMultipartUtil.getInputStream(), fileUrl);
+        TexOssTemplateStream.upload(importFileMultipartUtil.getInputStream(), fileUrl);
     }
 
     /**
@@ -124,9 +128,9 @@ public class TexTemplateCellServiceImpl extends ServiceImpl<TexTemplateCellMappe
             exc.setCellStartRow(BLANK + rIndex);
             exc.setCellStartCol(BLANK + cIndex);
             exc.setCellProperty(value);
-            TexThreadLocal.getExCells().add(exc);
+            TexThreadLocal.addExCell(exc);
         } else if (!value.trim().isEmpty()) {
-            TexThreadLocal.getExHead().put(rIndex + RC_CONNECT + cIndex, value);
+            TexThreadLocal.putExHead(rIndex + RC_CONNECT + cIndex, value);
         }
     }
 
