@@ -2,10 +2,11 @@ package com.ditto.tex_component.tex_export;
 
 import com.ditto.tex_component.tex_exception.TexException;
 import com.ditto.tex_component.tex_util.TexThreadLocal;
-import com.ditto.tex_component.tex_util.oss.OSSInputOperate;
-import com.ditto.tex_component.tex_util.oss.OSSUtil;
+import com.ditto.tex_component.tex_util.template_stream.TexInputStreamOperate;
 import com.ditto.tex_component.tex_util.request.ExportFileResponseUtil;
+import com.ditto.tex_component.tex_util.template_stream.TexOssTemplateStream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletOutputStream;
@@ -19,23 +20,25 @@ import static com.ditto.tex_component.tex_exception.TexExceptionEnum.FILE_EXPORT
 @Slf4j
 public class SxssfExportOrdinaryColumn implements SxssfExportOrdinary{
 
-
+    @Autowired
+    private TexOssTemplateStream TexOssTemplateStream;
 
     @Override
     public void export( HttpServletResponse response, GoExport goExport) {
         ExportFileResponseUtil responseUtil = new ExportFileResponseUtil(response, TexThreadLocal.getExTemplate().getFileName(), "xlsx");
-        OSSUtil.downloadOSSInput(TexThreadLocal.getExTemplate().getTemplateUrl(), new OSSInputOperate() {
+        TexOssTemplateStream.downloadInput(TexThreadLocal.getExTemplate().getTemplateUrl(), new TexInputStreamOperate() {
             @Override
             public void closeBefore(InputStream inputStream) throws Exception {
                 SxssfExport exportColum = SxssfExportFactory.create(inputStream, TexThreadLocal.getExTemplate().getTemplateType());
                 goExport.exportData(exportColum);
-                TexThreadLocal.clear();
                 try (ServletOutputStream outputStream = responseUtil.getOutputStream()) {
                     exportColum.getWorkbook().write(outputStream);
                     exportColum.getWorkbook().dispose();
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                     throw new TexException(FILE_EXPORT_ERROR);
+                }finally {
+                    TexThreadLocal.clear();
                 }
             }
 

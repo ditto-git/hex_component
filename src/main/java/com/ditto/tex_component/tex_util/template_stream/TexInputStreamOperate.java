@@ -1,8 +1,8 @@
-package com.ditto.tex_component.tex_util.oss;
+package com.ditto.tex_component.tex_util.template_stream;
 
 import java.io.InputStream;
 
-public interface OSSInputOperate {
+public interface TexInputStreamOperate {
 
    public  void closeBefore(InputStream inputStream) throws Exception;
 

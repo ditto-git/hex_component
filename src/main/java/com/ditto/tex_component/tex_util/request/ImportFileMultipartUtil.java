@@ -19,7 +19,7 @@ public class ImportFileMultipartUtil {
 
 
 
-    @Getter
+
     private MultipartFile multipartFile;
     @Getter
     private String fileName;
@@ -44,7 +44,7 @@ public class ImportFileMultipartUtil {
 
     public InputStream getInputStream (){
         try {
-            inputStream = multipartFile.getInputStream();
+            inputStream=multipartFile.getInputStream();
         } catch (IOException e) {
             log.error("multipartFileInputStream 读取失败{}", e.getMessage());
             throw new TexException(TEMP_IO_ERROR);
@@ -52,7 +52,17 @@ public class ImportFileMultipartUtil {
         return  inputStream;
     }
 
+
     public void closeInputStream (){
+        try {
+            this.inputStream.close();
+        } catch (IOException e) {
+            log.error("multipartFileInputStream 释放失败{}", e.getMessage());
+            throw new TexException(TEMP_IO_ERROR);
+        }
+    }
+
+    public static void closeInputStream (InputStream inputStream){
         try {
             inputStream.close();
         } catch (IOException e) {

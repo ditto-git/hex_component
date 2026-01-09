@@ -9,9 +9,9 @@ import com.ditto.tex_component.tex_console.service.TexTemplateFileCheck;
 import com.ditto.tex_component.tex_console.service.TexTemplateService;
 import com.ditto.tex_component.tex_exception.TexException;
 import com.ditto.tex_component.tex_exception.TexExceptionEnum;
-import com.ditto.tex_component.tex_util.oss.OSSUtil;
 import com.ditto.tex_component.tex_util.request.ExportFileResponseUtil;
 import com.ditto.tex_component.tex_util.request.ImportFileMultipartUtil;
+import com.ditto.tex_component.tex_util.template_stream.TexOssTemplateStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,6 +36,9 @@ public class TexTemplateController {
 
     @Autowired
     private TexTemplateCellService texTemplateCellService;
+
+    @Autowired
+    private TexOssTemplateStream TexOssTemplateStream;
 
     @RequestMapping("/initExTemplate")
     public void  initExTemplate (@RequestBody TexTemplate texTemplate){
@@ -104,7 +107,7 @@ public class TexTemplateController {
     public void  downloadExTemplate(@PathVariable String templateCode, HttpServletResponse response)  {
         ExportFileResponseUtil.ResponseBuilder(response,templateCode,"xlsx");
         TexTemplate texTemplate = texTemplateService.getExTemplate(templateCode);
-        OSSUtil.downloadOSSResponse(texTemplate.getTemplateUrl(),response);
+        TexOssTemplateStream.downloadResponse(texTemplate.getTemplateUrl(),response);
     }
 
     @RequestMapping("/exTemplateInfo")
