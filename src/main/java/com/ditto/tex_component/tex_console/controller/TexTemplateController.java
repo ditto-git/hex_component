@@ -14,7 +14,10 @@ import com.ditto.tex_component.tex_util.request.ImportFileMultipartUtil;
 import com.ditto.tex_component.tex_util.template_stream.TexOssTemplateStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +28,7 @@ import static com.ditto.tex_component.tex_console.constants.TexConstants.*;
 
 
 @RestController
-@RequestMapping("/tex-templateConsole")
+@RequestMapping("/ExTemplateConsole")
 public class TexTemplateController {
 
     @Autowired
@@ -35,27 +38,27 @@ public class TexTemplateController {
     private TexTemplateCellService texTemplateCellService;
 
     @Autowired
-    private TexOssTemplateStream texOssTemplateStream;
+    private TexOssTemplateStream TexOssTemplateStream;
 
-    @PostMapping("/init-template")
-    public void  initTexTemplate (@RequestBody TexTemplate texTemplate){
-        if (!StringUtils.hasText(texTemplate.getTemplateCode())){
+    @RequestMapping("/initExTemplate")
+    public void  initExTemplate (@RequestBody TexTemplate texTemplate){
+        if (StringUtils.isEmpty(texTemplate.getTemplateCode())){
             throw  new TexException(TexExceptionEnum.TEMP_CODE_NULL);
         }
         texTemplateService.initExTemplate(texTemplate);
     }
 
-    @PutMapping("/update-template")
-    public void  updateTexTemplate (@RequestBody TexTemplate texTemplate){
-        if (!StringUtils.hasText(texTemplate.getTemplateCode())){
+    @RequestMapping("/updateExTemplate")
+    public void  updateExTemplate (@RequestBody TexTemplate texTemplate){
+        if (StringUtils.isEmpty(texTemplate.getTemplateCode())){
             throw  new TexException(TexExceptionEnum.TEMP_CODE_NULL);
         }
         texTemplateService.updateById(texTemplate);
     }
 
-    @PutMapping("/update-template-status")
-    public void  updateTexTemplateStatus (@RequestBody TexTemplate texTemplate){
-        if (!StringUtils.hasText(texTemplate.getTemplateCode())){
+    @RequestMapping("/useExTemplate")
+    public void  useExTemplate (@RequestBody TexTemplate texTemplate){
+        if (StringUtils.isEmpty(texTemplate.getTemplateCode())){
             throw  new TexException(TexExceptionEnum.TEMP_CODE_NULL);
         }
         texTemplateService.lambdaUpdate().set(TexTemplate::getTemplateStatus, texTemplate.getTemplateStatus())
@@ -63,35 +66,36 @@ public class TexTemplateController {
     }
 
 
-    @DeleteMapping("/del-template")
-    public void delTexTemplate (@RequestBody List<String> ids){
+    @RequestMapping("/delExTemplate")
+    public void delExTemplate (@RequestBody List<String> ids){
         texTemplateService.lambdaUpdate().set(TexTemplate::getTemplateStatus,DEL).in(TexTemplate::getTemplateCode,ids).update();
 
     }
 
 
-    @GetMapping("/query-template")
-    public List<TexTemplate> queryTexTemplate (String searchValue){
-        LambdaQueryWrapper<TexTemplate> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+
+    @RequestMapping("/selectExTemplate")
+    public List<TexTemplate> selectExTemplate (String select){
+        LambdaQueryWrapper<TexTemplate> lambdaQueryWrapper = new LambdaQueryWrapper();
         lambdaQueryWrapper.in(TexTemplate::getTemplateStatus, Arrays.asList(MAINTAIN, USE));
-        if (StringUtils.hasText(searchValue)) {
+        if (StringUtils.hasText(select)) {
             lambdaQueryWrapper.and(queryWrapper -> {
-                queryWrapper.like(TexTemplate::getTemplateCode, searchValue).or().like(TexTemplate::getTemplateName, searchValue);
+                queryWrapper.like(TexTemplate::getTemplateCode, select).or().like(TexTemplate::getTemplateName, select);
             });
         }
         return texTemplateService.list(lambdaQueryWrapper);
     }
 
-    @GetMapping("/upload-template/{templateCode}")
-    public void  uploadTexTemplate(@PathVariable()String templateCode , MultipartHttpServletRequest request) {
-        uploadTexTemplate(request,(ImportFileMultipartUtil importFileMultipartUtil)->{
+    @RequestMapping("/uploadExTemplate/{templateCode}")
+    public void  uploadExTemplate(@PathVariable()String templateCode , MultipartHttpServletRequest request) {
+        uploadExTemplate(request,(ImportFileMultipartUtil importFileMultipartUtil)->{
             if(!importFileMultipartUtil.getFileName().equals(templateCode)){
                 throw  new TexException(TexExceptionEnum.TEMP_MATCH_ERROR);
             }
         });
     }
-    public void  uploadTexTemplate(MultipartHttpServletRequest request, TexTemplateFileCheck texTemplateFileCheck)  {
-        ImportFileMultipartUtil multipart = new ImportFileMultipartUtil(request, FILE_PARAM);
+    public void  uploadExTemplate(MultipartHttpServletRequest request, TexTemplateFileCheck texTemplateFileCheck)  {
+        ImportFileMultipartUtil multipart = new ImportFileMultipartUtil(request, "file");
         if(texTemplateFileCheck !=null){
             texTemplateFileCheck.check(multipart);
         }
@@ -99,47 +103,48 @@ public class TexTemplateController {
 
     }
 
-    @GetMapping("/download-template/{templateCode}")
-    public void  downloadTexTemplate(@PathVariable String templateCode, HttpServletResponse response)  {
-        ExportFileResponseUtil.ResponseBuilder(response,templateCode,FILE_TYPE);
+    @RequestMapping("/downloadExTemplate/{templateCode}")
+    public void  downloadExTemplate(@PathVariable String templateCode, HttpServletResponse response)  {
+        ExportFileResponseUtil.ResponseBuilder(response,templateCode,"xlsx");
         TexTemplate texTemplate = texTemplateService.getExTemplate(templateCode);
-        texOssTemplateStream.downloadResponse(texTemplate.getTemplateUrl(),response);
+        TexOssTemplateStream.downloadResponse(texTemplate.getTemplateUrl(),response);
     }
 
-    @GetMapping("/query-template-info")
-    public List<TexTemplateCell>  queryTexTemplateInfo(String texTemplateCode,String searchValue)  {
-        if (!StringUtils.hasText(texTemplateCode)){
+    @RequestMapping("/exTemplateInfo")
+    public List<TexTemplateCell>  exTemplateInfo(@RequestBody TexTemplateCell texTemplateCell)  {
+        if (StringUtils.isEmpty(texTemplateCell.getTemplateCode())){
             throw  new TexException(TexExceptionEnum.TEMP_CODE_NULL);
         }
         LambdaQueryWrapper<TexTemplateCell> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(TexTemplateCell::getTemplateCode, texTemplateCode);
-        if (StringUtils.hasText(searchValue)) {
+        lambdaQueryWrapper.eq(TexTemplateCell::getTemplateCode, texTemplateCell.getTemplateCode());
+        if (StringUtils.hasText(texTemplateCell.getCellCode())) {
             lambdaQueryWrapper.and(queryWrapper -> {
-                queryWrapper.like(TexTemplateCell::getCellCode, searchValue)
-                        .or().like(TexTemplateCell::getCellProperty, searchValue)
-                        .or().like(TexTemplateCell::getHeadContent, searchValue);
+                queryWrapper.like(TexTemplateCell::getCellCode, texTemplateCell.getCellCode())
+                        .or().like(TexTemplateCell::getCellProperty, texTemplateCell.getCellProperty())
+                        .or().like(TexTemplateCell::getHeadContent, texTemplateCell.getHeadContent());
+
+
             });
         }
         return texTemplateCellService.list(lambdaQueryWrapper);
     }
 
-    @PutMapping("/update-templateCell")
-    public void updateTexTemplate(@RequestBody TexTemplateCell texTemplateCell)  {
-        if (!StringUtils.hasText(texTemplateCell.getTemplateCode())){
+    @RequestMapping("/updateExTemplateCell")
+    public void updateExTemplate(@RequestBody TexTemplateCell texTemplateCell)  {
+        if (StringUtils.isEmpty(texTemplateCell.getTemplateCode())){
             throw  new TexException(TexExceptionEnum.CELL_CODE_NULL);
         }
          texTemplateCellService.updateById(texTemplateCell);
     }
 
 
-    @GetMapping("/download-templateCells")
-    public void exportTexTemplateCell(String templateCode,HttpServletResponse response){
-        texTemplateCellService.exportExTemplateCell(new ExportFileResponseUtil(response,templateCode,FILE_TYPE));
+    @RequestMapping("/downloadExCells")
+    public void exportExTemplateCell(@RequestBody TexTemplateCell texTemplateCell,HttpServletResponse response)throws Exception {
+        texTemplateCellService.exportExTemplateCell(new ExportFileResponseUtil(response,texTemplateCell.getTemplateCode(),"xlsx"));
     }
-
-    @PostMapping("/upload-templateCells")
-    public void importTexTemplateCell(MultipartHttpServletRequest request) {
-        ImportFileMultipartUtil multipart = new ImportFileMultipartUtil(request, FILE_PARAM);
+    @RequestMapping("/uploadExCells")
+    public void importExTemplateCell(MultipartHttpServletRequest request) throws Exception {
+        ImportFileMultipartUtil multipart = new ImportFileMultipartUtil(request, "file");
         texTemplateCellService.importExTemplateCell(multipart);
     }
 
