@@ -49,7 +49,7 @@ import static com.ditto.tex_component.tex_console.constants.TexConstants.*;
 @Slf4j
 public class TexTemplateCellServiceImpl extends ServiceImpl<TexTemplateCellMapper, TexTemplateCell> implements TexTemplateCellService {
 
-    private static final String CONTENTS="/ex_template/";
+    private static final String OSS_PATCH="/";
     private static final String FILE_NAME_CONNECT="_";
     private static final String VERSION_TIME_FORMATTER="yyMMddHHmmss";
 
@@ -78,7 +78,7 @@ public class TexTemplateCellServiceImpl extends ServiceImpl<TexTemplateCellMappe
 
         /*文件名定义     templateCode+version+加线程号+文件后缀         TEST_25083014120856.xlsx*/
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(VERSION_TIME_FORMATTER);
-        String fileUrl = CONTENTS + texTemplate.getTemplateCode() + FILE_NAME_CONNECT + LocalDateTime.now().format(timeFormatter) + FILE_NAME_CONNECT + Thread.currentThread().getId() + importFileMultipartUtil.getSuffix();
+        String fileUrl = OSS_PATCH + texTemplate.getTemplateCode() + FILE_NAME_CONNECT + LocalDateTime.now().format(timeFormatter) + FILE_NAME_CONNECT + Thread.currentThread().getId() + importFileMultipartUtil.getSuffix();
         texTemplate.setTemplateUrl(fileUrl);
 
         /*读取模板内容 到ExTemplateCell*/
