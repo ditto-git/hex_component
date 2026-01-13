@@ -70,7 +70,7 @@ public class TexTemplateCellServiceImpl extends ServiceImpl<TexTemplateCellMappe
     private TexTemplateCellMapper hexTemplateCellMapper;
 
     @Autowired
-    private TexOssTemplateStream TexOssTemplateStream;
+    private TexOssTemplateStream texOssTemplateStream;
 
     @Transactional
     public void replaceExTemplate(ImportFileMultipartUtil importFileMultipartUtil) {
@@ -105,7 +105,7 @@ public class TexTemplateCellServiceImpl extends ServiceImpl<TexTemplateCellMappe
         doAfterAllAnalysed();
 
         /*更新OSS模板   模板路径变更*/
-        TexOssTemplateStream.upload(importFileMultipartUtil.getInputStream(), fileUrl);
+        texOssTemplateStream.upload(importFileMultipartUtil.getInputStream(), fileUrl);
     }
 
     /**

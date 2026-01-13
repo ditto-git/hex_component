@@ -38,7 +38,7 @@ public class TexTemplateController {
     private TexTemplateCellService texTemplateCellService;
 
     @Autowired
-    private TexOssTemplateStream TexOssTemplateStream;
+    private TexOssTemplateStream texOssTemplateStream;
 
     @RequestMapping("/initExTemplate")
     public void  initExTemplate (@RequestBody TexTemplate texTemplate){
@@ -107,7 +107,7 @@ public class TexTemplateController {
     public void  downloadExTemplate(@PathVariable String templateCode, HttpServletResponse response)  {
         ExportFileResponseUtil.ResponseBuilder(response,templateCode,"xlsx");
         TexTemplate texTemplate = texTemplateService.getExTemplate(templateCode);
-        TexOssTemplateStream.downloadResponse(texTemplate.getTemplateUrl(),response);
+        texOssTemplateStream.downloadResponse(texTemplate.getTemplateUrl(),response);
     }
 
     @RequestMapping("/exTemplateInfo")
