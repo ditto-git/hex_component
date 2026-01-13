@@ -21,12 +21,12 @@ import static com.ditto.tex_component.tex_exception.TexExceptionEnum.FILE_EXPORT
 public class SxssfExportOrdinaryColumn implements SxssfExportOrdinary{
 
     @Autowired
-    private TexOssTemplateStream TexOssTemplateStream;
+    private TexOssTemplateStream texOssTemplateStream;
 
     @Override
     public void export( HttpServletResponse response, GoExport goExport) {
         ExportFileResponseUtil responseUtil = new ExportFileResponseUtil(response, TexThreadLocal.getExTemplate().getFileName(), "xlsx");
-        TexOssTemplateStream.downloadInput(TexThreadLocal.getExTemplate().getTemplateUrl(), new TexInputStreamOperate() {
+        texOssTemplateStream.downloadInput(TexThreadLocal.getExTemplate().getTemplateUrl(), new TexInputStreamOperate() {
             @Override
             public void closeBefore(InputStream inputStream) throws Exception {
                 SxssfExport exportColum = SxssfExportFactory.create(inputStream, TexThreadLocal.getExTemplate().getTemplateType());
