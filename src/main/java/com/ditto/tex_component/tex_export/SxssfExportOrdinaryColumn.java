@@ -13,6 +13,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 
+import static com.ditto.tex_component.tex_console.constants.TexConstants.FILE_TYPE;
 import static com.ditto.tex_component.tex_exception.TexExceptionEnum.FILE_EXPORT_ERROR;
 
 
@@ -25,7 +26,7 @@ public class SxssfExportOrdinaryColumn implements SxssfExportOrdinary{
 
     @Override
     public void export( HttpServletResponse response, GoExport goExport) {
-        ExportFileResponseUtil responseUtil = new ExportFileResponseUtil(response, TexThreadLocal.getExTemplate().getFileName(), "xlsx");
+        ExportFileResponseUtil responseUtil = new ExportFileResponseUtil(response, TexThreadLocal.getExTemplate().getFileName(), FILE_TYPE);
         texOssTemplateStream.downloadInput(TexThreadLocal.getExTemplate().getTemplateUrl(), new TexInputStreamOperate() {
             @Override
             public void closeBefore(InputStream inputStream) throws Exception {
