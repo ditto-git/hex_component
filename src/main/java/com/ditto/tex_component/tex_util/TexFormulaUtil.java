@@ -1,6 +1,7 @@
 package com.ditto.tex_component.tex_util;
 
 
+
 import com.ditto.tex_component.tex_console.entity.TexTemplate;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.poi.ss.util.CellReference;
@@ -14,8 +15,8 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class ExFormula {
-    private static Logger logger = LoggerFactory.getLogger(ExFormula.class);
+public class TexFormulaUtil {
+    private static Logger logger = LoggerFactory.getLogger(TexFormulaUtil.class);
 
     //空白字符
     public final static String BLANK = "";
@@ -23,18 +24,19 @@ public class ExFormula {
     public final static String SPLIT_FORMULA = "\\$";
     //节点分割符
     public final static String SPLIT_NODE = ":";
-    //公式逻辑分割符
+
+
+    //DATA_UNION公式数据链接符
     public final static String SPLIT_OP = "#";
-
-    //表头公式
-    public final static String FORMULA_HEAD = "FORMULA_HEAD";
-    //数据公式
-    public final static String FORMULA_CELL = "FORMULA_CELL";
-
-    //合并拼接符
+    //DATA_UNION合并拼接符
     public final static String SPLIT_UNION = "&";
-    //表头年动态
-    public final static String NAME_YEARN = "NAMEYEAR";
+    //DATA_UNION替换符
+    public final static String SPLIT_BRACKET_L = "\\(";
+    public final static String SPLIT_BRACKET_R  = ")";
+    public final static int DEFAULT_WEIGHT  = 0;
+
+    //当前字段的公式执行权重
+    public final static String CELL_FORMULA_WT = "WT";
     //数据运算
     public final static String DATA_CALCULATION = "DATA_CALCULATION";
     //数据合并及补替
@@ -45,113 +47,109 @@ public class ExFormula {
     public final static String DATA_AC1 = "AC1";
     //取值保留两位小数(默认)
     public final static String DATA_AC2 = "AC2";
-    //生成序号
-    public final static String XH = "XH";
-
+    //表头公式
+    public final static String FORMULA_HEAD = "FORMULA_HEAD";
+    //数据公式
+    public final static String FORMULA_CELL = "FORMULA_CELL";
 
     /**
      * @description 读取数据公式
      * @author wdx
      */
-    public static Map<String, Map<String, Map<String, String>>> readFormula(TexTemplate texTemplate) {
+    public static  List<TexFormula> readFormula(TexTemplate texTemplate) {
 
-        Map<String, Map<String, String>> cellKeyFormulas = new HashMap<>();
-        Map<String, Map<String, String>> headKeyFormulas = new HashMap<>();
+        List<TexFormula> texFormulaList = new ArrayList<>();
 
         texTemplate.getTexTemplateCells().forEach(sxtc -> {
+
                     //读取cellFormula
                     if (StringUtils.hasText(sxtc.getCellFormula()) && sxtc.getCellFormula().contains(SPLIT_NODE)) {
-                        cellKeyFormulas.put(sxtc.getCellProperty(), new HashMap<>());
+                       Map<String, String> cellFormulas = new HashMap<>();new HashMap<>();
+
 
                         //读取成多条独立公式
                         Arrays.stream(sxtc.getCellFormula().split(SPLIT_FORMULA)).forEach(formula -> {
-
                             try {
+                                //key=公式类型，value=实际公式
                                 if (formula.contains(SPLIT_NODE)) {
-                                    cellKeyFormulas.get(sxtc.getCellProperty()).put(formula.split(SPLIT_NODE)[0], formula.split(SPLIT_NODE)[1]);
+                                    cellFormulas.put(formula.split(SPLIT_NODE)[0], formula.split(SPLIT_NODE)[1]);
                                 }
                             } catch (Exception e) {
                                 logger.error("公式读取失败：" + formula, e);
                             }
 
                         });
+
+                        if(!CollectionUtils.isEmpty(cellFormulas)){
+                            String weight = cellFormulas.get(CELL_FORMULA_WT);
+                            int weightInt= StringUtils.hasText(weight)&&weight.matches("^-?[\\d.]+$") ? Integer.parseInt(weight):DEFAULT_WEIGHT;
+                            texFormulaList.add(new TexFormula(sxtc.getCellProperty(),cellFormulas,weightInt)) ;
+                        }
+
                     }
-
-                    //读取headFormula
-                    if (StringUtils.hasText(sxtc.getHeadFormula()) && sxtc.getCellFormula().contains(SPLIT_NODE)) {
-                        headKeyFormulas.put(sxtc.getCellProperty(), new HashMap<>());
-
-                        //读取成多条独立公式
-                        Arrays.stream(sxtc.getCellFormula().split(SPLIT_FORMULA)).forEach(formula -> {
-
-                            try {
-                                if (formula.contains(SPLIT_NODE)) {
-                                    headKeyFormulas.get(sxtc.getCellProperty()).put(formula.split(SPLIT_NODE)[0], formula.split(SPLIT_NODE)[1]);
-                                }
-                            } catch (Exception e) {
-                                logger.error("公式读取失败：" + formula, e);
-                            }
-
-                        });
-                    }
-
-
                 }
 
         );
 
-        Map<String, Map<String, Map<String, String>>> formulas = new HashMap<>();
-        if (!CollectionUtils.isEmpty(cellKeyFormulas)) {
-            formulas.put(FORMULA_CELL, cellKeyFormulas);
+        if(!CollectionUtils.isEmpty(texFormulaList)){
+            texFormulaList.sort(Comparator.comparing(TexFormula::getWeight));
         }
-        if (!CollectionUtils.isEmpty(cellKeyFormulas)) {
-            formulas.put(FORMULA_CELL, cellKeyFormulas);
-        }
-
-        return formulas;
+        return texFormulaList;
     }
 
     /**
-     * @description 匹配数据公式
+     * @description 公式解析
      * @author wdx
      */
-    public static void cellFormulaMatch(Map<String, Map<String, Map<String, String>>> formulas, List<Map<String, Object>> dataList) {
+    public static void cellFormulaBatch(List<TexFormula>texFormulaList, List<Map<String, Object>> dataList) {
         //读取cellFormula
-        Map<String, Map<String, String>> cellFormulas = formulas.get(FORMULA_CELL);
-        if (CollectionUtils.isEmpty(cellFormulas)) {return;}
-
+        if (CollectionUtils.isEmpty(texFormulaList)) {return;}
         //遍历每条数据，
         dataList.forEach(data -> {
-
-            cellFormulas.forEach((key, value) -> {
-                Object o = cellFormulaAnalysis(key, value, data);
-                data.put(key, o);
+            texFormulaList.forEach(texFormula-> {
+                Object o = cellFormulaAnalysis(texFormula.getProperty(), texFormula.getCellFormulas(), data);
+                data.put(texFormula.getProperty(), o);
             });
-
         });
 
     }
 
     /**
+     * @description 公式解析
+     * @author wdx
+     */
+    public static void cellFormula(List<TexFormula>texFormulaList, Map<String, Object> data) {
+        //读取cellFormula
+        if (CollectionUtils.isEmpty(texFormulaList)) {return;}
+        texFormulaList.forEach(texFormula -> {
+                    Object o = cellFormulaAnalysis(texFormula.getProperty(), texFormula.getCellFormulas(), data);
+                    data.put(texFormula.getProperty(), o);
+                });
+
+    }
+
+
+
+    /**
      * @description 解析数据公式
      * @author wdx
      */
-    public static Object cellFormulaAnalysis(String property, Map<String, String> propertyFormulas, Map<String, Object> data) {
+    private static Object cellFormulaAnalysis(String property, Map<String, String> propertyFormulas, Map<String, Object> data) {
+
         Object value = data.get(property);
         //为null返回
         if (value == null) {
             value= BLANK;
         }
+
+        /** 公式有序执行*/
+
+
         //数据直取不做任何处理
         if (propertyFormulas.get(DATA_N) != null) {
             value.toString().trim();
             return value;
         }
-
-        /** 公式有序执行*/
-
-        //生成序号
-        //if(FORMULAs.get(XH)!=null){rowMap.put(key,num+1);return ;}
 
         //数据合并及补替
         if (propertyFormulas.get(DATA_UNION) != null) {
@@ -180,9 +178,9 @@ public class ExFormula {
      * @description 数据合并及补替 DATA_UNION 例：CLO5(CLO4)&CLO2#-
      * @author wdx
      */
-    public static String unionData(String formula, Map<String, Object> data) {
+    private static String unionData(String formula, Map<String, Object> data) {
 
-        //","右侧取连接符union 默认连接符为空白字符
+        //"#"右侧取连接符union 默认连接符为空白字符
         String[] unionFormula = formula.split(SPLIT_OP);
         String union = unionFormula.length > 1 ? unionFormula[1] : BLANK;
 
@@ -195,9 +193,9 @@ public class ExFormula {
         String value;
         for (String cloumn : cloumns) {
             //补替 如果（）外为空，取括号内
-            String[] bts = cloumn.split("\\(");
+            String[] bts = cloumn.split(SPLIT_BRACKET_L);
             value = data.get(bts[0]) == null ? BLANK : data.get(bts[0]).toString();
-            value = !StringUtils.hasText(value) && bts.length > 1 && data.get(bts[1].replace(")", BLANK)) != null ? data.get(bts[1].replace(")", BLANK)).toString() : value;
+            value = !StringUtils.hasText(value) && bts.length > 1 && data.get(bts[1].replace(SPLIT_BRACKET_R, BLANK)) != null ? data.get(bts[1].replace(SPLIT_BRACKET_R, BLANK)).toString() : value;
             //数据替换cloumn
             formula = formula.replace(cloumn, value);
             //为空处理无效拼接
@@ -213,7 +211,7 @@ public class ExFormula {
      * @description 数据运算  DATA_OPERATION 例：CLO1*(CLO2+CLO3-CL16) /CLO5
      * @author wdx
      */
-    public static Object calculationData(String formula, Map<String, Object> data) {
+    private static Object calculationData(String formula, Map<String, Object> data) {
         Object evaluate = BLANK;
 
        /*遍历转换法
@@ -266,7 +264,7 @@ public class ExFormula {
      * @description 小数保留两位 DATA_AC2 数值为Double  序号为Integer 其他数据为String类型
      * @author wdx
      */
-    public static Object ac2(Object value) {
+    private static Object ac2(Object value) {
         if (value instanceof Double) {
             //小于0.01的数强制算作0.01
             Double o = (Double) value;
@@ -284,7 +282,7 @@ public class ExFormula {
      * @description 小数保留一位 DATA_AC1  数值为Double  序号为Integer 其他数据为String类型
      * @author wdx
      */
-    public static Object ac1(Object value) {
+    private static Object ac1(Object value) {
         if (value instanceof Double) {
             Double o = (Double) value;
             //小于0.01的数强制算作0.1
@@ -303,17 +301,14 @@ public class ExFormula {
      * 目的： 数值强转字符串在生成Excel文档时会出现 警示角标：数字为文本类型
      * @author wdx
      */
-    public static Object valueFloatAccuracy(Object value) {
+    private static Object valueFloatAccuracy(Object value) {
         //处理数据:返空字符串
         if (value == null) {
             return BLANK;
         }
 
         if (value instanceof String) {
-            //处理数据:无效日期
-            if ("0000-00-00".equals(value)) {
-                return BLANK;
-            }
+
             String s = value.toString();
             //正数或小数转为Double
             if (s.matches("^-?[\\d.]+$")) {
@@ -333,72 +328,6 @@ public class ExFormula {
 
         return value;
     }
-
-
-    /**
-     * @description 专项报表-页面展示表头公式
-     * @author wdx
-     */
-
-/*
-    public static String  columnNameFormart(String formart, String columnName, SpecialReportParamVo param){
-        if(StringUtils.isBlank(formart)||!formart.conta7ins(COLUMN_NAME_FORMART)){return columnName;}
-        //公式拆分
-        String[] formarts = formart.split(SPLIT_FORMART);
-        for (String s : formarts) {
-            //表头年动态
-            if(s.contains(NAME_YEARN)){columnName=getYearBeforeOrAfter(formart,columnName,param.getDate());}
-        }
-        return columnName;
-    }
-*/
-
-
-    /**
-     * @description NAMEYEARN:[YEAR-0] NAMEYEARN:[YEAR+0]
-     * @author wdx 表头公式  以当前年 生成对应年
-     */
-/*    private   static String getYearBeforeOrAfter(String formart,String columnName,String ymonth){
-        if(StringUtils.isBlank(ymonth)||StringUtils.isBlank(columnName)){return columnName;}
-        formart = ExCellUtil.readZxbbFormart(formart);
-        try {
-            Integer integer = new Integer(ymonth.substring(0, 4));
-            if(formart .contains("YEAR-")){
-                ymonth=integer-new Integer(formart.replaceAll("YEAR-",""))+"年";
-            }else {
-                ymonth=integer+new Integer(formart.replaceAll("YEAR+",""))+"年";}
-
-        }catch (Exception e){
-            logger.error("-",e);}
-
-        return ymonth+"-"+columnName;
-    }*/
-    /**
-     * @description 读取公式内容 formart [ ]
-     * @author wdx
-     */
-    public   static  String readFormart(String formart){
-        return formart.substring(formart.indexOf("[") + 1, formart.indexOf("]"));
-
-    }
-
-    /**
-     * @description 返回当前年月
-     * @author wdx
-     */
-    public  static  String getYmonthJanuary(String ymonth){
-        return ymonth.substring(0,4)+"01";
-    }
-
-    /**
-     * @description 返回当前年
-     * @author wdx
-     */
-    public  static  String getYear(String ymonth){
-        return ymonth.substring(0,4);
-    }
-
-
 
 
     /**

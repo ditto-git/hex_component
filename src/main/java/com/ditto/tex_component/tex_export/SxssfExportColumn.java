@@ -1,9 +1,11 @@
 package com.ditto.tex_component.tex_export;
 
+
+
 import com.ditto.tex_component.tex_console.entity.TexTemplateCell;
 import com.ditto.tex_component.tex_exception.TexException;
 import com.ditto.tex_component.tex_util.ExCellUtil;
-import com.ditto.tex_component.tex_util.ExFormula;
+import com.ditto.tex_component.tex_util.TexFormulaUtil;
 import com.ditto.tex_component.tex_util.TexThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
@@ -108,7 +110,7 @@ public class SxssfExportColumn extends SxssfExport {
                 List<Map<String, Object>> batch = dataList.subList(0, Math.min(cacheCount, dataList.size()));
 
                 //解析EX公式
-                ExFormula.cellFormulaMatch(TexThreadLocal.getExFormulas(), batch);
+                TexFormulaUtil.cellFormulaBatch(TexThreadLocal.getExFormulas(), batch);
 
                 //插入数据到文档
                 for (Map<String, Object> data : batch) {

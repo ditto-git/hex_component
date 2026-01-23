@@ -3,7 +3,7 @@ package com.ditto.tex_component.tex_export;
 import com.ditto.tex_component.tex_console.entity.TexTemplateCell;
 import com.ditto.tex_component.tex_exception.TexException;
 import com.ditto.tex_component.tex_util.ExCellUtil;
-import com.ditto.tex_component.tex_util.ExFormula;
+import com.ditto.tex_component.tex_util.TexFormulaUtil;
 import com.ditto.tex_component.tex_util.TexThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
@@ -76,7 +76,7 @@ public class SxssfExportRow extends SxssfExport {
             }
 
             //解析EX公式
-            ExFormula.cellFormulaMatch(TexThreadLocal.getExFormulas(), dataList);
+            TexFormulaUtil.cellFormulaBatch(TexThreadLocal.getExFormulas(), dataList);
             List<TexTemplateCell> hexTemplateCells = TexThreadLocal.getExTemplate().getTexTemplateCells();
 
             //首行末行信息

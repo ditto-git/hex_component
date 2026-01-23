@@ -1,7 +1,9 @@
 package com.ditto.tex_component.tex_util;
 
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.ditto.tex_component.tex_console.entity.TexTemplate;
 import com.ditto.tex_component.tex_console.entity.TexTemplateCell;
+
 
 import java.util.*;
 
@@ -16,7 +18,7 @@ import java.util.*;
 public class TexThreadLocal {
 
     // 静态常量：线程本地变量（全大写命名规范）
-    private static final ThreadLocal<TexThread> THREAD_LOCAL = new ThreadLocal<>();
+    private static final ThreadLocal<TexThread> THREAD_LOCAL = new TransmittableThreadLocal<>();
 
     /**
      * 初始化并设置模板（核心初始化方法）
@@ -94,30 +96,11 @@ public class TexThreadLocal {
         getTexThread().getHead().put(key, value);
     }
 
-    /**
-     * 获取当前线程的模板公式（懒加载，首次调用时读取）
-     * @return 公式三层映射（返回不可修改视图，避免外部篡改）
-     * @throws IllegalStateException 未调用setExTemplate()初始化时抛出
-     */
-    public static Map<String, Map<String, Map<String, String>>> getExFormulas() {
-        Map<String, Map<String, Map<String, String>>> formulas = getTexThread().getFormulas();
-        // 对三层映射都做不可修改包装，彻底防止外部篡改
-        return Collections.unmodifiableMap(
-                formulas.entrySet().stream()
-                        .collect(HashMap::new,
-                                (map, entry) -> map.put(entry.getKey(),
-                                        Collections.unmodifiableMap(
-                                                entry.getValue().entrySet().stream()
-                                                        .collect(HashMap::new,
-                                                                (innerMap, innerEntry) -> innerMap.put(innerEntry.getKey(),
-                                                                        Collections.unmodifiableMap(innerEntry.getValue())),
-                                                                HashMap::putAll
-                                                        )
-                                        )
-                                ),
-                                HashMap::putAll
-                        )
-        );
+
+    public static List<TexFormula> getExFormulas() {
+
+         return getTexThread().getFormulas();
+
     }
 
     /**
@@ -152,7 +135,7 @@ public class TexThreadLocal {
         // 模板表头映射
         private final Map<String, String> exTemplateHead = new HashMap<>();
         // 模板公式（懒加载，首次使用时初始化）
-        private Map<String, Map<String, Map<String, String>>> formulas;
+        private List<TexFormula> formulas;
 
         /**
          * 设置模板（仅内部调用，确保模板非null）
@@ -185,10 +168,11 @@ public class TexThreadLocal {
         /**
          * 懒加载公式：首次调用时读取，后续直接返回缓存
          */
-        public Map<String, Map<String, Map<String, String>>> getFormulas() {
+        public List<TexFormula> getFormulas() {
             if (formulas == null) {
                 // 此处依赖ExFormula.readFormula()，已确保texTemplate非null（外部设置时校验）
-                formulas = ExFormula.readFormula(this.texTemplate);
+                formulas = TexFormulaUtil.readFormula(this.texTemplate);
+
                 // 若ExFormula可能返回null，可添加兜底：formulas = Objects.requireNonNullElse(formulas, new HashMap<>());
             }
             return formulas;

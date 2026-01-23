@@ -1,6 +1,9 @@
 package com.ditto.tex_component.tex_util;
 
 
+
+
+
 import com.ditto.tex_component.tex_console.entity.TexTemplate;
 import com.ditto.tex_component.tex_console.entity.TexTemplateCell;
 
@@ -68,7 +71,7 @@ class TexThread {
     public Map<String,String>  getHead(){return this.exTemplateHead;}
     public Map<String, Map<String,  Map<String, String>>>  getFormulas(){
         if(formulas==null){
-            formulas=ExFormula.readFormula(this.texTemplate);
+         //   formulas=TexFormulaUtil.readFormula(this.texTemplate);
         }
         return this.formulas;
     }
