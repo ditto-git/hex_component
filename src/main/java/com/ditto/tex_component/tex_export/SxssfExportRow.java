@@ -2,7 +2,7 @@ package com.ditto.tex_component.tex_export;
 
 import com.ditto.tex_component.tex_console.entity.TexTemplateCell;
 import com.ditto.tex_component.tex_exception.TexException;
-import com.ditto.tex_component.tex_util.ExCellUtil;
+import com.ditto.tex_component.tex_util.TexCellUtil;
 import com.ditto.tex_component.tex_util.TexFormulaUtil;
 import com.ditto.tex_component.tex_util.TexThreadLocal;
 import lombok.extern.slf4j.Slf4j;
@@ -106,7 +106,7 @@ public class SxssfExportRow extends SxssfExport {
 
             }
 
-            List<CellRangeAddress> cellRangeAddress = ExCellUtil.getCellRangeAddress(xssfWorkbook.getSheetAt(styleSheetIndex));
+            List<CellRangeAddress> cellRangeAddress = TexCellUtil.getCellRangeAddress(xssfWorkbook.getSheetAt(styleSheetIndex));
 
             //复制表头
             if (copyHeed && (rowIndex > lastRow.getRowNum() ||!sxssfSheet.getSheetName().equals(workbook.getSheetAt(styleSheetIndex).getSheetName()))) {
@@ -114,7 +114,7 @@ public class SxssfExportRow extends SxssfExport {
             }
 
             if(!sxssfSheet.getSheetName().equals(workbook.getSheetAt(styleSheetIndex).getSheetName())||rowIndex!=0){
-                ExCellUtil.copyRowsPOI(firstRow.getRowNum(), lastRow.getRowNum(), rowIndex+heedHeight, firstRow.getSheet(), sxssfSheet, true, cellRangeAddress);
+                TexCellUtil.copyRowsPOI(firstRow.getRowNum(), lastRow.getRowNum(), rowIndex+heedHeight, firstRow.getSheet(), sxssfSheet, true, cellRangeAddress);
             }
 
             //用空字符串补全最后一个表
@@ -164,8 +164,8 @@ public class SxssfExportRow extends SxssfExport {
                         //重置列索引
                         cellIndex = initCell;
                         if (rowIndex != 0) {
-                            ExCellUtil.copyRowsPOI(firstRow.getRowNum(), lastRow.getRowNum(), rowIndex, firstRow.getSheet(), sxssfSheet, true, cellRangeAddress);
-                            // ExCellUtil.copyRowsPOI(firstRow.getRowNum(), lastRow.getRowNum(), rowIndex, 0, cellIndex, firstRow.getSheet(), sxssfSheet, true, true);
+                            TexCellUtil.copyRowsPOI(firstRow.getRowNum(), lastRow.getRowNum(), rowIndex, firstRow.getSheet(), sxssfSheet, true, cellRangeAddress);
+                            // TexCellUtil.copyRowsPOI(firstRow.getRowNum(), lastRow.getRowNum(), rowIndex, 0, cellIndex, firstRow.getSheet(), sxssfSheet, true, true);
                         }
                     }
 
@@ -187,7 +187,7 @@ public class SxssfExportRow extends SxssfExport {
 
 
                             dataCell = dataRow.getCell(cellIndex);
-                            ExCellUtil.setCellValue(dataCell, CollectionUtils.isEmpty(data) ? "" : data.get(hexTemplateCell.getCellProperty()));
+                            TexCellUtil.setCellValue(dataCell, CollectionUtils.isEmpty(data) ? "" : data.get(hexTemplateCell.getCellProperty()));
                         }catch (Exception e){
                             System.out.println(heedHeight+Integer.parseInt(hexTemplateCell.getCellIndex()) + rowIndex - firstRow.getRowNum());
                             e.printStackTrace();
@@ -195,7 +195,7 @@ public class SxssfExportRow extends SxssfExport {
 
                     /*    dataCell = dataRow.getCell(cellIndex) == null ? dataRow.createCell(cellIndex) : dataRow.getCell(cellIndex);
                         if (cellIndex > initCell) {
-                            ExCellUtil.copyCellPOI(initColumn.get(exTemplateCell.getCellProperty()), dataCell, false);
+                            TexCellUtil.copyCellPOI(initColumn.get(exTemplateCell.getCellProperty()), dataCell, false);
                         }*/
 
 
@@ -228,7 +228,7 @@ public class SxssfExportRow extends SxssfExport {
             if(firstRow.getRowNum() <1 ){return;}
             int startRowIndex = copyHeedRange == null ? 0 : copyHeedRange[0];
             int endRowIndex = copyHeedRange == null ? firstRow.getRowNum() - 1 : copyHeedRange[1];
-            ExCellUtil.copyRowsPOI(startRowIndex, endRowIndex, rowIndex, firstRow.getSheet(), sxssfSheet, true, cellRangeAddress);
+            TexCellUtil.copyRowsPOI(startRowIndex, endRowIndex, rowIndex, firstRow.getSheet(), sxssfSheet, true, cellRangeAddress);
             heedHeight=endRowIndex - startRowIndex + 1;
            // rowIndex += heedHeight;
         }

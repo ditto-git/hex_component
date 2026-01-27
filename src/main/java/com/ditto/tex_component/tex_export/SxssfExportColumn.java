@@ -4,7 +4,7 @@ package com.ditto.tex_component.tex_export;
 
 import com.ditto.tex_component.tex_console.entity.TexTemplateCell;
 import com.ditto.tex_component.tex_exception.TexException;
-import com.ditto.tex_component.tex_util.ExCellUtil;
+import com.ditto.tex_component.tex_util.TexCellUtil;
 import com.ditto.tex_component.tex_util.TexFormulaUtil;
 import com.ditto.tex_component.tex_util.TexThreadLocal;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +99,7 @@ public class SxssfExportColumn extends SxssfExport {
             sheetRowIndex(sxssfSheet);
             //复制表头
             if (copyHeed) {
-                copyHead(sxssfSheet, ExCellUtil.getCellRangeAddress(xssfWorkbook.getSheetAt(styleSheetIndex)));
+                copyHead(sxssfSheet, TexCellUtil.getCellRangeAddress(xssfWorkbook.getSheetAt(styleSheetIndex)));
             }
 
             //插入数据
@@ -117,7 +117,7 @@ public class SxssfExportColumn extends SxssfExport {
                     dataRow = rowIndex == initRow.getRowNum() && initRow.getSheet().getSheetName().equals(sxssfSheet.getSheetName()) ? initRow : sxssfSheet.createRow(rowIndex);
                     //从初始(样式)行,复制样式
                     if (!(rowIndex == initRow.getRowNum() && initRow.getSheet().getSheetName().equals(sxssfSheet.getSheetName()))) {
-                        ExCellUtil.copyRowPOI(initRow, dataRow, false, false);
+                        TexCellUtil.copyRowPOI(initRow, dataRow, false, false);
                     }
                     for (TexTemplateCell hexTemplateCell : TexThreadLocal.getExTemplate().getTexTemplateCells()) {
                         //添加序号
@@ -125,7 +125,7 @@ public class SxssfExportColumn extends SxssfExport {
                             data.put("XH", count++);
                         }
                         //添加插入值
-                        ExCellUtil.setCellValue(dataRow.getCell(Integer.parseInt(hexTemplateCell.getCellIndex())), data.get(hexTemplateCell.getCellProperty()));
+                        TexCellUtil.setCellValue(dataRow.getCell(Integer.parseInt(hexTemplateCell.getCellIndex())), data.get(hexTemplateCell.getCellProperty()));
                     }
                     rowIndex++;
                 }
@@ -194,7 +194,7 @@ public class SxssfExportColumn extends SxssfExport {
             if(initRow.getRowNum() < 1 || (sxssfSheet.getSheetName().equals(initRow.getSheet().getSheetName())&&rowIndex <= initRow.getRowNum())){return;}
             int startRowIndex = copyHeedRange == null ? 0 : copyHeedRange[0];
             int endRowIndex = copyHeedRange == null ? initRow.getRowNum() - 1 : copyHeedRange[1];
-            ExCellUtil.copyRowsPOI(startRowIndex, endRowIndex, rowIndex, initRow.getSheet(), sxssfSheet, true, cellRangeAddress);
+            TexCellUtil.copyRowsPOI(startRowIndex, endRowIndex, rowIndex, initRow.getSheet(), sxssfSheet, true, cellRangeAddress);
             rowIndex += endRowIndex - startRowIndex + 1;
         }
 

@@ -23,8 +23,8 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ExCellUtil {
-    private static Logger logger = LoggerFactory.getLogger(ExCellUtil.class);
+public class TexCellUtil {
+    private static Logger logger = LoggerFactory.getLogger(TexCellUtil.class);
 
 
 

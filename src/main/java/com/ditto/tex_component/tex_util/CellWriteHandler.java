@@ -21,7 +21,7 @@ public class CellWriteHandler extends AbstractColumnWidthStyleStrategy {
         if(relativeRowIndex!=relativeRowIndexRecord){
             relativeRowIndexRecord=relativeRowIndex;
             Sheet sheet = cell.getSheet();
-            ExCellUtil.copyRowPOI( sheet.getRow(3),cell.getRow(),false,false);
+            TexCellUtil.copyRowPOI( sheet.getRow(3),cell.getRow(),false,false);
         }
 
 
