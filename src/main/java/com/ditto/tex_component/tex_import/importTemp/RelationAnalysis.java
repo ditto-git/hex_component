@@ -59,71 +59,44 @@ public class RelationAnalysis {
         workbook.setSheetHidden(workbook.getSheetIndex(dictSheetName), true);
         CreationHelper creationHelper = workbook.getCreationHelper();
 
-        //用于保障field读取顺序，从顶级->子级，将新排序存入到list  随遍历次数的增加而减少
-        Map<Field,String> fieldRelationMap = new HashMap<>();
-        LinkedList<Field> fieldRelationList = new LinkedList<>();
-
-        //存储所有field及对应注解
-        Map<Field, TEX_Relation> fieldAnnotationMap = new HashMap<>();
+        Map<String, String> relationMap =new HashMap<>();
+        Map<String, Field> fieldMap = new HashMap<>();
 
 
-        for (Field field : clazz.getDeclaredFields()) {
+        for (Field field : clazz.getDeclaredFields()){
             if (field.isAnnotationPresent(TEX_Relation.class)) {
                 TEX_Relation annotation = field.getAnnotation(TEX_Relation.class);
-                //插入 AnnotationMap
-                fieldAnnotationMap.put(field, annotation);
-                //插入 RelationMap
-                fieldRelationMap.put(field,annotation.parentField());
+                fieldMap.put(field.getName(),field);
+                relationMap.put(field.getName(),annotation.parentField());
             }
         }
+         List<String> fieldRelationSort = SortByLevel.sort(relationMap);
 
-        //确立一级field [A,  B,  C]
-        fieldRelationMap.forEach((k,v)->{
-            if(RELATION_TOP.equals(v)){
-                fieldRelationList.add(k);
-            }
-        });
 
-        //field排序  [A, a, a-a, a-a-a, B, b, b-b, C]
-        int size = fieldRelationMap.size();
-        for (int i=0;i<size;i++) {
-            Iterator<Field> keyIterator = fieldRelationMap.keySet().iterator();
-            while (keyIterator.hasNext()) {
-                Field k = keyIterator.next();
-                if (fieldRelationMap.get(k).equals(fieldRelationList.get(i).getName())) {
-                    fieldRelationList.add(i + 1, k);
-                    keyIterator.remove();
-                }
-            }
-
-        }
 
         //将子节点数据按父节点sort排序
         Sheet finalDictSheet = dictSheet;
-        fieldRelationList.forEach(k -> {
-                    /**将子节点数据按父节点sort排序 */
-                    TEX_Relation v = fieldAnnotationMap.get(k);
+        fieldRelationSort.forEach(k -> {
+            Field field = fieldMap.get(k);
+
+            TEX_Relation v = field.getAnnotation(TEX_Relation.class);
                     //获取父节点
                     String parentField = v.parentField();
                     String parentProperty = parentField;
                     if (!RELATION_TOP.equals(parentField)) {
-                        try {
-                            parentProperty = fieldAnnotationMap.get(clazz.getDeclaredField(parentField)).property();
-                        } catch (NoSuchFieldException e) {
-                            throw new RuntimeException(e);
-                        }
+                        parentProperty=fieldMap.get(parentField).getAnnotation(TEX_Relation.class).property();
                         //property为空使用FieldName
                         parentProperty = parentProperty.isEmpty() ? parentField : parentProperty;
                     }
 
                     //property为空使用FieldName
                     String property = v.property();
-                    property = property.isEmpty() ? k.getName() : property;
+                    property = property.isEmpty() ? k: property;
                     //将子节点数据按父节点sort排序
                     relationSort(parentProperty, property, dicts.get(property));
 
                     /**创建级联关系 */
-                    relationToSheet(clazz,k,parentField, finalDictSheet, dicts.get(property));
+                    relationToSheet(clazz,field,parentField, finalDictSheet, dicts.get(property));
 
                 }
         );
